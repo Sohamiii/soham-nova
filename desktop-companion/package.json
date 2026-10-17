@@ -1,0 +1,14 @@
+
+{
+  "name": "nova-ai-desktop-companion",
+  "version": "1.0.0",
+  "description": "Local, permission-based NOVA AI companion",
+  "main": "main.js",
+  "private": true,
+  "scripts": {
+    "start": "electron ."
+  },
+  "devDependencies": {
+    "electron": "^39.0.0"
+  }
+}

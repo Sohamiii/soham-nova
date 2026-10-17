@@ -1,0 +1,1092 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#080b14">
+    <title>NOVA AI | Voice Assistant</title>
+
+    <style>
+        :root {
+            color-scheme: dark;
+            --bg: #080b14;
+            --panel: #111827;
+            --line: #26334b;
+            --cyan: #67e8f9;
+            --muted: #9aa9c3;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: radial-gradient(ellipse at top, #172644, var(--bg) 65%);
+            color: #f4f7ff;
+            font: 16px Arial, sans-serif;
+        }
+
+        main {
+            max-width: 1000px;
+            margin: auto;
+            padding: 28px 18px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .logo {
+            font-size: 25px;
+            font-weight: 800;
+            letter-spacing: 4px;
+        }
+
+        .logo span, h1 span { color: var(--cyan); }
+
+        .pill {
+            border: 1px solid var(--line);
+            border-radius: 30px;
+            padding: 9px 13px;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .hero {
+            text-align: center;
+            padding: 38px 0 26px;
+        }
+
+        h1 {
+            font-size: clamp(34px, 7vw, 58px);
+            margin: 12px 0;
+        }
+
+        .subtitle {
+            color: var(--muted);
+            line-height: 1.7;
+        }
+
+        .orb {
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            margin: 35px auto;
+            display: grid;
+            place-items: center;
+            background: radial-gradient(
+                circle at 35% 30%,
+                #b7faff,
+                #37bfe2 20%,
+                #3944a0 52%,
+                #12152e 72%
+            );
+            box-shadow: 0 0 35px #22d3ee66, 0 0 90px #6366f144;
+            position: relative;
+            transition: box-shadow .25s;
+        }
+
+        .orb::before, .orb::after {
+            content: "";
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .orb::before {
+            inset: -10px;
+            border: 1px solid #67e8f966;
+            animation: spin 12s linear infinite;
+        }
+
+        .orb::after {
+            inset: -19px;
+            border: 1px dashed #818cf866;
+            animation: spin 18s linear infinite reverse;
+        }
+
+        .orb.listening {
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes pulse {
+            50% {
+                box-shadow: 0 0 65px #22d3eeaa, 0 0 120px #6366f188;
+            }
+        }
+
+        button, select, input { font: inherit; }
+        button { cursor: pointer; }
+
+        button:disabled {
+            cursor: not-allowed;
+            opacity: .6;
+        }
+
+        button:focus-visible, input:focus-visible, select:focus-visible {
+            outline: 2px solid var(--cyan);
+            outline-offset: 3px;
+        }
+
+        .mic {
+            background: var(--cyan);
+            color: #08111e;
+            border: 0;
+            border-radius: 50px;
+            padding: 16px 25px;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .panel {
+            background: #111827dd;
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+
+        .panel h2 {
+            font-size: 17px;
+            margin: 0 0 14px;
+        }
+
+        .row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        input[type="text"], select {
+            min-width: 0;
+            flex: 1;
+            background: #080e1c;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 14px;
+            color: white;
+            font-size: 15px;
+        }
+
+        .action {
+            background: #1b2941;
+            color: white;
+            border: 1px solid #344665;
+            border-radius: 10px;
+            padding: 12px 15px;
+        }
+
+        .action:hover, .tile:hover {
+            border-color: var(--cyan);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 10px;
+        }
+
+        .tile {
+            background: #0b1221;
+            border: 1px solid var(--line);
+            padding: 15px;
+            border-radius: 12px;
+            text-align: left;
+            color: white;
+        }
+
+        .tile strong {
+            display: block;
+            margin-bottom: 7px;
+        }
+
+        .tile small { color: var(--muted); }
+
+        .status {
+            font-size: 13px;
+            color: var(--cyan);
+            margin-top: 14px;
+            min-height: 20px;
+            overflow-wrap: anywhere;
+            line-height: 1.6;
+        }
+
+        .muted {
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        label {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            line-height: 1.5;
+        }
+
+        #history {
+            max-height: 240px;
+            overflow: auto;
+            font-size: 13px;
+            color: var(--muted);
+            line-height: 1.8;
+            overflow-wrap: anywhere;
+        }
+
+        #history div {
+            padding: 4px 0;
+            border-bottom: 1px solid #26334b55;
+        }
+
+        #fallback {
+            margin-top: 10px;
+            overflow-wrap: anywhere;
+        }
+
+        #fallback a {
+            color: var(--cyan);
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #77859d;
+            font-size: 12px;
+            line-height: 1.7;
+        }
+
+        @media (max-width: 500px) {
+            main { padding: 20px 13px; }
+            .orb { width: 135px; height: 135px; }
+            .row > button { width: 100%; }
+            .panel { padding: 16px; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: .01ms !important;
+                animation-iteration-count: 1 !important;
+                scroll-behavior: auto !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<main>
+    <header>
+        <div class="logo">NOVA<span>.</span>AI</div>
+        <div class="pill" id="connection">WEB MODE · READY</div>
+    </header>
+
+    <section class="hero">
+        <div class="pill">PERSONAL VOICE ASSISTANT</div>
+
+        <h1>Your voice.<br><span>Your command.</span></h1>
+
+        <p class="subtitle">
+            Speak naturally. Search the web. Discover music.<br>
+            Your personal assistant starts here.
+        </p>
+
+        <div class="orb" id="orb" aria-hidden="true">
+            <span style="font-size:42px">✦</span>
+        </div>
+
+        <button class="mic" id="mic" type="button">
+            🎙 Start Listening
+        </button>
+
+        <div class="status" id="status" role="status" aria-live="polite">
+            Ready when you are.
+        </div>
+
+        <div id="fallback"></div>
+    </section>
+
+    <section class="panel">
+        <h2>Command Console</h2>
+
+        <form id="commandForm" class="row">
+            <input
+                id="command"
+                type="text"
+                placeholder="Try: Search JavaScript on YouTube"
+                autocomplete="off"
+                aria-label="Enter a command"
+            >
+            <button class="action" type="submit">Run command ↗</button>
+        </form>
+
+        <p class="muted">
+            Try: "Open YouTube", "Search JavaScript on YouTube",
+            "YouTube par Python tutorial search karo",
+            "Open YouTube and search GTA 5", "Play Arijit Singh songs",
+            "Search AI news", "Open GitHub", or "What time is it?"
+        </p>
+    </section>
+
+    <section class="panel">
+        <h2>Quick Actions</h2>
+
+        <div class="grid">
+            <button class="tile" type="button" data-cmd="open youtube">
+                <strong>▶ YouTube</strong>
+                <small>Open YouTube</small>
+            </button>
+
+            <button class="tile" type="button" data-cmd="search AI news">
+                <strong>⌕ Web Search</strong>
+                <small>Search with Google</small>
+            </button>
+
+            <button class="tile" type="button" data-cmd="play Arijit Singh songs">
+                <strong>♫ Music Search</strong>
+                <small>Find songs on YouTube</small>
+            </button>
+
+            <button class="tile" type="button" data-cmd="open github">
+                <strong>⌘ GitHub</strong>
+                <small>Open GitHub</small>
+            </button>
+
+            <button class="tile" type="button" data-cmd="what time is it">
+                <strong>◷ Time</strong>
+                <small>Tell the current time</small>
+            </button>
+
+            <button class="tile" type="button" data-cmd="what is today's date">
+                <strong>▦ Date</strong>
+                <small>Tell today's date</small>
+            </button>
+        </div>
+    </section>
+
+    <section class="panel">
+        <h2>Voice Settings</h2>
+
+        <label>
+            <input id="voiceReply" type="checkbox" checked>
+            <span>
+                <strong>Enable voice replies</strong><br>
+                <span class="muted">NOVA will speak responses aloud.</span>
+            </span>
+        </label>
+
+        <div style="margin-top:18px">
+            <label for="voiceLanguage" style="margin-bottom:8px">
+                <strong>Recognition language</strong>
+            </label>
+
+            <select id="voiceLanguage" aria-label="Recognition language">
+                <option value="en-IN">English (India)</option>
+                <option value="hi-IN">Hindi (India)</option>
+                <option value="en-US">English (US)</option>
+            </select>
+        </div>
+
+        <p class="muted">
+            Microphone access and speech recognition depend on your browser.
+            English (India) may recognize some Indian English speech better.
+            Hinglish recognition can still vary.
+        </p>
+    </section>
+
+    <section class="panel">
+        <h2>Activity</h2>
+
+        <div id="history" aria-live="polite">
+            <div>NOVA initialized. Waiting for your first command.</div>
+        </div>
+
+        <button class="action" id="clearHistory" type="button"
+            style="margin-top:12px">
+            Clear activity
+        </button>
+    </section>
+
+    <footer>
+        NOVA AI · Personal project<br>
+        Voice features require a supported browser and microphone permission.
+    </footer>
+</main>
+
+<script>
+"use strict";
+
+const $ = id => document.getElementById(id);
+
+const statusEl = $("status");
+const historyEl = $("history");
+const fallbackEl = $("fallback");
+const orb = $("orb");
+const mic = $("mic");
+const commandInput = $("command");
+const connection = $("connection");
+
+const SpeechRecognition =
+    window.SpeechRecognition ||
+    window.webkitSpeechRecognition;
+
+let recognition = null;
+let listening = false;
+let starting = false;
+
+const MAX_HISTORY = 100;
+let historyCount = historyEl.children.length;
+
+/* Activity and status */
+
+function report(message) {
+    statusEl.textContent = message;
+
+    const line = document.createElement("div");
+    line.textContent =
+        "› " + new Date().toLocaleTimeString() + " — " + message;
+
+    historyEl.prepend(line);
+    historyCount++;
+
+    while (historyCount > MAX_HISTORY && historyEl.lastElementChild) {
+        historyEl.lastElementChild.remove();
+        historyCount--;
+    }
+}
+
+function setConnection(message) {
+    connection.textContent = message;
+}
+
+/* Voice replies */
+
+function say(message) {
+    if (!$("voiceReply").checked) return;
+
+    if (
+        !("speechSynthesis" in window) ||
+        typeof SpeechSynthesisUtterance === "undefined"
+    ) {
+        return;
+    }
+
+    window.speechSynthesis.cancel();
+
+    const utterance = new SpeechSynthesisUtterance(message);
+    utterance.lang = $("voiceLanguage").value;
+    utterance.rate = 1;
+    utterance.onerror = () => {};
+
+    window.speechSynthesis.speak(utterance);
+}
+
+function stopSpeaking() {
+    if ("speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+    }
+}
+
+/* Website shortcuts */
+
+function normalizeUrl(raw) {
+    const aliases = {
+        "youtube": "https://www.youtube.com/",
+        "youtube.com": "https://www.youtube.com/",
+        "youtube music": "https://music.youtube.com/",
+        "google": "https://www.google.com/",
+        "google.com": "https://www.google.com/",
+        "github": "https://github.com/",
+        "github.com": "https://github.com/",
+        "instagram": "https://www.instagram.com/",
+        "instagram.com": "https://www.instagram.com/",
+        "spotify": "https://open.spotify.com/",
+        "spotify.com": "https://open.spotify.com/",
+        "facebook": "https://www.facebook.com/",
+        "facebook.com": "https://www.facebook.com/",
+        "gmail": "https://mail.google.com/",
+        "chatgpt": "https://chatgpt.com/",
+        "whatsapp": "https://web.whatsapp.com/",
+        "amazon": "https://www.amazon.in/",
+        "wikipedia": "https://www.wikipedia.org/",
+        "reddit": "https://www.reddit.com/",
+        "x": "https://x.com/",
+        "twitter": "https://x.com/",
+        "linkedin": "https://www.linkedin.com/",
+        "netflix": "https://www.netflix.com/",
+        "canva": "https://www.canva.com/",
+        "stackoverflow": "https://stackoverflow.com/"
+    };
+
+    let target = raw.trim();
+
+    if (!target) return null;
+
+    const aliasKey = target
+        .toLowerCase()
+        .replace(/^https?:\/\//, "")
+        .replace(/^www\./, "")
+        .replace(/\/+$/, "");
+
+    if (aliases[aliasKey]) return aliases[aliasKey];
+
+    // Only accept normal HTTP/HTTPS website addresses.
+    if (
+        !/^(https?:\/\/)?[a-z0-9.-]+\.[a-z]{2,}(?::\d{1,5})?(\/[^\s]*)?$/i
+            .test(target)
+    ) {
+        return null;
+    }
+
+    if (!/^https?:\/\//i.test(target)) {
+        target = "https://" + target;
+    }
+
+    try {
+        const url = new URL(target);
+
+        if (
+            !["https:", "http:"].includes(url.protocol) ||
+            !url.hostname.includes(".") ||
+            url.username ||
+            url.password
+        ) {
+            return null;
+        }
+
+        return url.href;
+    } catch {
+        return null;
+    }
+}
+
+/* Search URL builders */
+
+function googleSearch(query) {
+    return "https://www.google.com/search?q=" +
+        encodeURIComponent(query);
+}
+
+function youtubeSearch(query) {
+    return "https://www.youtube.com/results?search_query=" +
+        encodeURIComponent(query);
+}
+
+
+/*
+ * Open YouTube in the Android app when possible.
+ * Other websites open in a new tab.
+ * If opening fails, show a clickable fallback link.
+ */
+
+function openUrl(url) {
+    fallbackEl.replaceChildren();
+
+    const isYouTube = /(^|\.)youtube\.com|(^|\.)youtu\.be/i.test(
+        (() => {
+            try {
+                return new URL(url).hostname;
+            } catch {
+                return "";
+            }
+        })()
+    );
+
+    if (isYouTube) {
+        const appUrl =
+            "intent://" +
+            url.replace(/^https?:\/\//i, "") +
+            "#Intent;scheme=https;" +
+            "package=com.google.android.youtube;" +
+            "S.browser_fallback_url=" +
+            encodeURIComponent(url) +
+            ";end";
+
+        try {
+            window.location.href = appUrl;
+            report("Trying to open YouTube app...");
+            return true;
+        } catch (error) {
+            console.warn("Could not open YouTube app:", error);
+        }
+    }
+
+    try {
+        const newTab = window.open(url, "_blank");
+
+        if (newTab) {
+            try {
+                newTab.opener = null;
+            } catch {}
+
+            report("Opening in a new tab.");
+            return true;
+        }
+    } catch (error) {
+        console.warn("Could not open new tab:", error);
+    }
+
+    report("Browser blocked opening the page. Tap the link below.");
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    link.textContent = isYouTube
+        ? "Tap here to open YouTube"
+        : "Tap here to open the requested page";
+
+    fallbackEl.appendChild(link);
+    return false;
+}
+
+/* Command cleanup */
+
+function cleanCommand(raw) {
+    return String(raw || "")
+        .trim()
+        .replace(/[.!?]+$/, "")
+        .replace(/\s+/g, " ");
+}
+
+function cleanQuery(query) {
+    return query
+        .trim()
+        .replace(
+            /\s+(please|please search|search karo|search kar do|search kar|dhundo|dhoondo|batao)$/i,
+            ""
+        )
+        .trim();
+}
+
+/* Common actions */
+
+function searchYouTube(query) {
+    query = cleanQuery(query);
+
+    if (!query) {
+        report("Bhai, YouTube par kya search karna hai?");
+        return;
+    }
+
+    report("Searching YouTube for: " + query);
+    say("Searching YouTube for " + query);
+    openUrl(youtubeSearch(query));
+}
+
+function searchGoogle(query) {
+    query = cleanQuery(query);
+
+    if (!query) {
+        report("Bhai, kya search karna hai?");
+        return;
+    }
+
+    report("Searching Google for: " + query);
+    say("Searching Google for " + query);
+    openUrl(googleSearch(query));
+}
+
+function openOrSearch(target) {
+    const url = normalizeUrl(target);
+
+    if (url) {
+        report("Opening " + target);
+        say("Opening " + target);
+        openUrl(url);
+        return;
+    }
+
+    // Unknown names are searched instead of being opened as unsafe URLs.
+    searchGoogle(target);
+}
+
+function clearHistory() {
+    historyEl.replaceChildren();
+
+    const line = document.createElement("div");
+    line.textContent = "Activity cleared.";
+    historyEl.appendChild(line);
+    historyCount = 1;
+
+    statusEl.textContent = "Ready when you are.";
+    fallbackEl.replaceChildren();
+}
+
+/* Main command engine */
+
+function runCommand(raw) {
+    const input = cleanCommand(raw);
+
+    if (!input) {
+        report("Please enter or speak a command first.");
+        return;
+    }
+
+    report("Command: " + input);
+
+    const cmd = input.toLowerCase();
+    let match;
+
+    // Stop speaking
+    if (/^(stop speaking|stop voice|quiet|stop talking)$/i.test(cmd)) {
+        stopSpeaking();
+        report("Voice reply stopped.");
+        return;
+    }
+
+    // Help
+    if (/^(help|commands|what can you do)$/i.test(cmd)) {
+        const message =
+            "I can open websites, search Google and YouTube, find songs, and tell you the time and date.";
+        report(message);
+        say(message);
+        return;
+    }
+
+    // Stop microphone
+    if (/^(stop listening|stop microphone|turn off microphone)$/i.test(cmd)) {
+        if (recognition && (listening || starting)) {
+            try {
+                recognition.stop();
+            } catch {}
+        }
+
+        report("Stopping voice recognition.");
+        return;
+    }
+
+    // Clear history
+    if (/^(clear history|clear activity)$/i.test(cmd)) {
+        clearHistory();
+        return;
+    }
+
+    // Current time
+    if (
+        /^(what time is it|tell me the time|current time|time batao|abhi kitne baje hain)$/i
+            .test(cmd)
+    ) {
+        const time = new Date().toLocaleTimeString([], {
+            hour: "numeric",
+            minute: "2-digit"
+        });
+
+        report("Current time: " + time);
+        say("The current time is " + time);
+        return;
+    }
+
+    // Today's date
+    if (
+        /^(what is today's date|what is the date|today's date|tell me the date|date batao|aaj ki date kya hai)$/i
+            .test(cmd)
+    ) {
+        const date = new Date().toLocaleDateString([], {
+            weekday: "long",
+            year: "numeric",
+            month: "long",
+            day: "numeric"
+        });
+
+        report("Today's date: " + date);
+        say("Today's date is " + date);
+        return;
+    }
+
+    /*
+     * IMPORTANT:
+     * Process YouTube-specific commands BEFORE generic "open" commands.
+     */
+
+    // "Open YouTube and search JavaScript"
+    // "Open YouTube then play music"
+    match = input.match(
+        /^(?:open|launch|go to|visit)\s+youtube(?:\.com)?\s+(?:and|then)\s+(?:search(?:\s+for)?|find|play)\s+(.+)$/i
+    );
+
+    if (match) {
+        searchYouTube(match[1]);
+        return;
+    }
+
+    // "Search JavaScript on YouTube"
+    // "Find songs on YouTube"
+    // "Play songs on YouTube"
+    match = input.match(
+        /^(?:search|find|look up|play)\s+(.+?)\s+(?:on|in)\s+youtube(?:\.com)?$/i
+    );
+
+    if (match) {
+        searchYouTube(match[1]);
+        return;
+    }
+
+    // "Search YouTube for JavaScript"
+    // "YouTube search JavaScript"
+    // "Find on YouTube JavaScript"
+    match = input.match(
+        /^(?:search\s+youtube\s+for|youtube\s+search|find\s+on\s+youtube|search\s+on\s+youtube)\s+(.+)$/i
+    );
+
+    if (match) {
+        searchYouTube(match[1]);
+        return;
+    }
+
+    // Hinglish:
+    // "YouTube par JavaScript search karo"
+    // "YouTube pe Python tutorial dhundo"
+    // "YouTube mein Arijit Singh songs chalao"
+    match = input.match(
+        /^(?:youtube|youtube\.com)\s+(?:par|pe|mein|me)\s+(.+)$/i
+    );
+
+    if (match) {
+        let query = match[1]
+            .replace(
+                /\s+(?:please\s+)?(?:search|find)\s+(?:karo|kar do|kar)$/i,
+                ""
+            )
+            .replace(
+                /\s+(?:please\s+)?(?:play|chalao|bajao|dikhao|dhundo|dhoondo|batao)$/i,
+                ""
+            )
+            .trim();
+
+        searchYouTube(query);
+        return;
+    }
+
+    // "Search JavaScript YouTube"
+    // "Find Python tutorial YouTube"
+    match = input.match(
+        /^(?:search|find|play)\s+(.+?)\s+youtube$/i
+    );
+
+    if (match) {
+        searchYouTube(match[1]);
+        return;
+    }
+
+    // "Play Arijit Singh songs"
+    // "Chalao relaxing music"
+    match = input.match(
+        /^(?:play|chalao|bajao)\s+(.+)$/i
+    );
+
+    if (match) {
+        searchYouTube(match[1]);
+        return;
+    }
+
+    // Open the YouTube homepage only if explicitly requested
+    if (
+        /^(?:open|launch|go to|visit)\s+(?:youtube|youtube\.com)$/i
+            .test(input)
+    ) {
+        report("Opening YouTube homepage.");
+        say("Opening YouTube");
+        openUrl("https://www.youtube.com/");
+        return;
+    }
+
+    // Open website or search unknown website name
+    match = input.match(
+        /^(?:open|launch|go to|visit)\s+(.+)$/i
+    );
+
+    if (match) {
+        openOrSearch(match[1].trim());
+        return;
+    }
+
+    // Google search
+    match = input.match(
+        /^(?:search|google search|search google|google)\s+(?:for\s+)?(.+)$/i
+    );
+
+    if (match) {
+        searchGoogle(match[1]);
+        return;
+    }
+
+    // Direct domain
+    const directUrl = normalizeUrl(input);
+
+    if (directUrl) {
+        report("Opening " + input);
+        say("Opening " + input);
+        openUrl(directUrl);
+        return;
+    }
+
+    // Default search: unknown commands go to Google
+    searchGoogle(input);
+}
+
+/* Speech recognition setup */
+
+if (SpeechRecognition) {
+    recognition = new SpeechRecognition();
+
+    recognition.lang = $("voiceLanguage").value;
+    recognition.interimResults = false;
+    recognition.continuous = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onstart = () => {
+        starting = false;
+        listening = true;
+
+        orb.classList.add("listening");
+        mic.textContent = "Listening… click to stop";
+        setConnection("VOICE MODE · LISTENING");
+        report("Listening for a command.");
+    };
+
+    recognition.onresult = event => {
+        const result = event.results[event.resultIndex];
+
+        if (!result || !result[0]) return;
+
+        const transcript = result[0].transcript.trim();
+
+        if (!transcript) {
+            report("No speech detected. Please try again.");
+            return;
+        }
+
+        commandInput.value = transcript;
+        report("Heard: " + transcript);
+        runCommand(transcript);
+    };
+
+    recognition.onerror = event => {
+        starting = false;
+
+        const messages = {
+            "not-allowed":
+                "Microphone permission denied. Allow access in browser settings.",
+            "service-not-allowed":
+                "Speech recognition service is blocked by the browser.",
+            "no-speech":
+                "No speech detected. Please speak and try again.",
+            "audio-capture":
+                "No microphone detected. Check your microphone connection.",
+            "network":
+                "Speech recognition network error. Check your internet connection.",
+            "aborted":
+                "Voice recognition was stopped."
+        };
+
+        report(
+            messages[event.error] ||
+            "Microphone error: " + event.error + ". Try typing a command."
+        );
+    };
+
+    recognition.onend = () => {
+        starting = false;
+        listening = false;
+
+        orb.classList.remove("listening");
+        mic.textContent = "🎙 Start Listening";
+        setConnection("WEB MODE · READY");
+    };
+} else {
+    mic.disabled = true;
+    mic.textContent = "Voice unavailable in this browser";
+
+    report(
+        "Speech recognition is unavailable. Try an updated version of Chrome, or type a command."
+    );
+}
+
+/* Microphone button */
+
+mic.addEventListener("click", () => {
+    if (!recognition) {
+        report("Voice recognition is unavailable. Type a command instead.");
+        return;
+    }
+
+    if (listening || starting) {
+        try {
+            recognition.stop();
+        } catch (error) {
+            console.warn(error);
+        }
+
+        return;
+    }
+
+    try {
+        recognition.lang = $("voiceLanguage").value;
+        starting = true;
+        recognition.start();
+    } catch (error) {
+        starting = false;
+        console.error(error);
+        report("Microphone could not start. Wait a moment and try again.");
+    }
+});
+
+/* Text command form */
+
+$("commandForm").addEventListener("submit", event => {
+    event.preventDefault();
+    runCommand(commandInput.value);
+});
+
+/* Quick action buttons */
+
+document.querySelectorAll("[data-cmd]").forEach(button => {
+    button.addEventListener("click", () => {
+        const command = button.dataset.cmd;
+        commandInput.value = command;
+        runCommand(command);
+    });
+});
+
+/* Voice language selector */
+
+$("voiceLanguage").addEventListener("change", () => {
+    if (recognition && !listening && !starting) {
+        recognition.lang = $("voiceLanguage").value;
+
+        report(
+            "Recognition language set to " +
+            $("voiceLanguage").selectedOptions[0].text + "."
+        );
+    } else if (recognition) {
+        report("The new language will apply after the current session ends.");
+    }
+});
+
+/* Clear activity button */
+
+$("clearHistory").addEventListener("click", clearHistory);
+
+/* Clean up when leaving the page */
+
+window.addEventListener("pagehide", () => {
+    stopSpeaking();
+
+    if (recognition && (listening || starting)) {
+        try {
+            recognition.abort();
+        } catch {}
+    }
+});
+</script>
+</body>
+</html>
+```
